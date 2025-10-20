@@ -1,23 +1,32 @@
 from fastapi import APIRouter,Depends,HTTPException
+from app.security import get_current_user,get_current_admin_user
 from sqlalchemy.orm import Session
-from .. import models,schemas,database
+from app import models,schemas
+from app.database import get_db
+from passlib.context import CryptContext
+from app.utils.email_sender import send_rider_email
+import random, string
 
 router = APIRouter(
     prefix="/riders",
     tags=['Riders']
 )
 
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()    
+pwd_context= CryptContext(schemes=['bcrypt'],deprecated="auto")
 
-@router.post("/",response_model=schemas.RiderResponse)
-def create_rider(rider:schemas.RiderCreate,db:Session=Depends(get_db)):
-    new_rider = models.Rider(name = rider.name,latitude=rider.latitude,longitude=rider.longitude)
-    db.add(new_rider)
+def generate_password(length)
+@router.get("/")
+def get_all_riders(db : Session = Depends(get_db), current_admin: dict = Depends(get_current_admin_user)):
+    new_riders = models.User(
+        name = "Rider name",
+        email = "rider@email.com",
+        password = pwd_context.hash("rider_password"),
+        role = "rider"
+    )
+    db.add(new_riders)
     db.commit()
-    db.refresh(new_rider)
-    return new_rider
+    db.refresh(new_riders)
+
+    send_rider_email(new_riders.name, new_riders.email, password)
+
+    return {"message": f"Rider {new_riders.email} created successfully"}

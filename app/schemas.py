@@ -1,5 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 from typing import Optional
+
+class UserBase(BaseModel):
+    name:str
+    email:EmailStr
+    phone_number:str
+    role:Optional[str]="user"        
+
+class UserCreate(UserBase):
+    password:str
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
 
 class RiderBase(BaseModel):
     name: str
